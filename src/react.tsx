@@ -53,11 +53,7 @@ export function SessionProvider({
     fetch(`${basePath}/session`)
       .then((res) => res.json())
       .then((data: unknown) => {
-        if (
-          data &&
-          typeof data === 'object' &&
-          Object.keys(data).length > 0
-        ) {
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
           setSession(data as Session);
           setStatus('authenticated');
         } else {
@@ -75,11 +71,7 @@ export function SessionProvider({
     try {
       const res = await fetch(`${basePath}/session`);
       const data: unknown = await res.json();
-      if (
-        data &&
-        typeof data === 'object' &&
-        Object.keys(data).length > 0
-      ) {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
         setSession(data as Session);
         setStatus('authenticated');
         return data as Session;
@@ -149,7 +141,16 @@ export async function signOut(
 /**
  * Fetches available authentication providers.
  */
-export async function getProviders(): Promise<Record<string, { id: string; name: string; type: string; signinUrl: string; callbackUrl: string }> | null> {
+export async function getProviders(): Promise<Record<
+  string,
+  {
+    id: string;
+    name: string;
+    type: string;
+    signinUrl: string;
+    callbackUrl: string;
+  }
+> | null> {
   try {
     const res = await fetch('/api/auth/providers');
     return res.json();
@@ -164,7 +165,7 @@ export async function getProviders(): Promise<Record<string, { id: string; name:
 export async function getCsrfToken(): Promise<string> {
   try {
     const res = await fetch('/api/auth/csrf');
-    const data = await res.json() as { csrfToken?: string };
+    const data = (await res.json()) as { csrfToken?: string };
     return data.csrfToken ?? '';
   } catch {
     return '';

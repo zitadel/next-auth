@@ -50,7 +50,10 @@ export function NextAuth(config: NextAuthConfig): {
     POST: (req: NextRequest) => Promise<NextResponse>;
   };
   auth: (req: Request) => Promise<Session | null>;
-  signIn: (provider?: string, options?: { redirectTo?: string }) => Promise<NextResponse>;
+  signIn: (
+    provider?: string,
+    options?: { redirectTo?: string },
+  ) => Promise<NextResponse>;
   signOut: (options?: { redirectTo?: string }) => Promise<NextResponse>;
 } {
   setEnvDefaults(process.env, config);
@@ -69,12 +72,14 @@ export function NextAuth(config: NextAuthConfig): {
       config,
     );
     const response = await Auth(
-      new Request(url, { headers: { cookie: req.headers.get('cookie') ?? '' } }),
+      new Request(url, {
+        headers: { cookie: req.headers.get('cookie') ?? '' },
+      }),
       config,
     );
     const data = await response.json();
     if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-      return data as Session;
+      return data as unknown as Session;
     }
     return null;
   }
