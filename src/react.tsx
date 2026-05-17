@@ -11,7 +11,7 @@ import type { Session } from '@auth/core/types';
 
 export type { Session };
 
-interface SessionContextValue {
+export interface SessionContextValue {
   data: Session | null;
   status: 'loading' | 'authenticated' | 'unauthenticated';
   update: () => Promise<Session | null>;
@@ -19,7 +19,7 @@ interface SessionContextValue {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
-interface SessionProviderProps {
+export interface SessionProviderProps {
   children: ReactNode;
   session?: Session | null;
   basePath?: string;

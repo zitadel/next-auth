@@ -20,7 +20,7 @@ export type {
  */
 export type NextAuthConfig = Omit<AuthConfig, 'raw'>;
 
-type NextRequest = Request & {
+export type NextRequest = Request & {
   nextUrl: URL;
 };
 
@@ -30,7 +30,7 @@ type NextResponse = Response;
  * Creates an Auth.js handler for Next.js App Router.
  *
  * @param config - Auth.js configuration
- * @returns Object containing handlers, auth, signIn, and signOut
+ * @returns Object containing handlers, getSession, signIn, and signOut
  *
  * @example
  * ```ts
@@ -38,10 +38,17 @@ type NextResponse = Response;
  * import { NextAuth } from '@zitadel/next-auth';
  * import Zitadel from '@auth/core/providers/zitadel';
  *
- * export const { handlers, auth, signIn, signOut } = NextAuth({
+ * export const { handlers, getSession } = NextAuth({
  *   providers: [Zitadel({ ... })],
  *   secret: process.env.AUTH_SECRET,
  * });
+ * ```
+ *
+ * @example
+ * ```ts
+ * // src/app/api/auth/[...nextauth]/route.ts
+ * import { handlers } from '@/lib/auth';
+ * export const { GET, POST } = handlers;
  * ```
  */
 export function NextAuth(config: NextAuthConfig): {
@@ -49,6 +56,12 @@ export function NextAuth(config: NextAuthConfig): {
     GET: (req: NextRequest) => Promise<NextResponse>;
     POST: (req: NextRequest) => Promise<NextResponse>;
   };
+  /** @deprecated Use `handlers.GET` instead */
+  GET: (req: NextRequest) => Promise<NextResponse>;
+  /** @deprecated Use `handlers.POST` instead */
+  POST: (req: NextRequest) => Promise<NextResponse>;
+  getSession: (req: Request) => Promise<Session | null>;
+  /** @deprecated Use `getSession` instead */
   auth: (req: Request) => Promise<Session | null>;
   signIn: (
     provider?: string,
@@ -56,13 +69,14 @@ export function NextAuth(config: NextAuthConfig): {
   ) => Promise<NextResponse>;
   signOut: (options?: { redirectTo?: string }) => Promise<NextResponse>;
 } {
+  config.basePath ??= '/api/auth';
   setEnvDefaults(process.env, config);
 
   async function handler(req: NextRequest): Promise<NextResponse> {
     return Auth(req as unknown as Request, config);
   }
 
-  async function auth(req: Request): Promise<Session | null> {
+  async function getSession(req: Request): Promise<Session | null> {
     const headers = new Headers(req.headers);
     const url = createActionURL(
       'session',
@@ -77,11 +91,11 @@ export function NextAuth(config: NextAuthConfig): {
       }),
       config,
     );
-    const data = await response.json();
-    if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-      return data as unknown as Session;
-    }
-    return null;
+    const { status } = response;
+    const data = (await response.json()) as Record<string, unknown> | null;
+    if (!data || !Object.keys(data).length) return null;
+    if (status === 200) return data as unknown as Session;
+    throw new Error((data as { message?: string }).message ?? 'Session error');
   }
 
   async function signIn(
@@ -115,8 +129,58 @@ export function NextAuth(config: NextAuthConfig): {
 
   return {
     handlers: { GET: handler, POST: handler },
-    auth,
+    GET: handler,
+    POST: handler,
+    getSession,
+    auth: getSession,
     signIn,
     signOut,
   };
+}
+
+/**
+ * Retrieves the current session on the server side.
+ *
+ * Standalone two-argument form — use this when you don't have a factory instance
+ * but have a request and config available directly.
+ *
+ * @param req - The current Request object
+ * @param config - Auth.js configuration
+ * @returns The session object or null
+ *
+ * @example
+ * ```ts
+ * import { getSession } from '@zitadel/next-auth';
+ * import { authOptions } from '@/lib/auth';
+ *
+ * const session = await getSession(request, authOptions);
+ * ```
+ */
+export async function getSession(
+  req: Request,
+  config: NextAuthConfig,
+): Promise<Session | null> {
+  config.basePath ??= '/api/auth';
+  setEnvDefaults(process.env, config);
+
+  const url = createActionURL(
+    'session',
+    new URL(req.url).protocol.slice(0, -1) as 'http' | 'https',
+    new Headers(req.headers),
+    process.env,
+    config,
+  );
+
+  const response = await Auth(
+    new Request(url, {
+      headers: { cookie: req.headers.get('cookie') ?? '' },
+    }),
+    config,
+  );
+
+  const { status } = response;
+  const data = (await response.json()) as Record<string, unknown> | null;
+  if (!data || !Object.keys(data).length) return null;
+  if (status === 200) return data as unknown as Session;
+  throw new Error((data as { message?: string }).message ?? 'Session error');
 }
