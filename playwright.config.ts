@@ -6,7 +6,6 @@ export default defineConfig({
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  // OAuth beforeAll runs `next build` (~60 s) then `next start` before tests run.
   timeout: 240_000,
   reporter: [
     ['html', { outputFolder: 'build/playwright-report', open: 'never' }],
