@@ -4,6 +4,7 @@ node_modules
 # Output
 .output
 .next
+.next-*
 .vercel
 .netlify
 .wrangler
