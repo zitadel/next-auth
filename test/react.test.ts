@@ -110,4 +110,42 @@ describe('Next Auth React Client', () => {
       expect(locationHref).toBe('/api/auth/signout');
     });
   });
+
+  describe('module exports', () => {
+    it('should export signIn as a function', async () => {
+      const { signIn } = await import('../src/react.js');
+      expect(signIn).toBeDefined();
+      expect(typeof signIn).toBe('function');
+    });
+
+    it('should export signOut as a function', async () => {
+      const { signOut } = await import('../src/react.js');
+      expect(signOut).toBeDefined();
+      expect(typeof signOut).toBe('function');
+    });
+
+    it('should export useSession as a function', async () => {
+      const { useSession } = await import('../src/react.js');
+      expect(useSession).toBeDefined();
+      expect(typeof useSession).toBe('function');
+    });
+
+    it('should export getProviders as a function', async () => {
+      const { getProviders } = await import('../src/react.js');
+      expect(getProviders).toBeDefined();
+      expect(typeof getProviders).toBe('function');
+    });
+
+    it('should export getCsrfToken as a function', async () => {
+      const { getCsrfToken } = await import('../src/react.js');
+      expect(getCsrfToken).toBeDefined();
+      expect(typeof getCsrfToken).toBe('function');
+    });
+
+    it('should export SessionProvider as a function', async () => {
+      const { SessionProvider } = await import('../src/react.js');
+      expect(SessionProvider).toBeDefined();
+      expect(typeof SessionProvider).toBe('function');
+    });
+  });
 });
