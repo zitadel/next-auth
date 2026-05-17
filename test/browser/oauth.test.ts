@@ -6,9 +6,10 @@ import path from 'path';
 const OAUTH_PORT = 3001;
 const BASE_URL = `http://localhost:${OAUTH_PORT}`;
 const AUTH_SIGNIN_URL = '/api/auth/signin';
-const AUTH_SIGNOUT_URL = '/api/auth/signout';
 
-let container: Awaited<ReturnType<InstanceType<typeof GenericContainer>['start']>>;
+let container: Awaited<
+  ReturnType<InstanceType<typeof GenericContainer>['start']>
+>;
 let devServer: ChildProcess;
 
 test.use({ baseURL: BASE_URL });
@@ -23,76 +24,81 @@ async function signInWithOAuth(page: Page): Promise<void> {
   await page.waitForURL(/\/profile/, { timeout: 30_000 });
 }
 
-test.beforeAll(async () => {
-  container = await new GenericContainer(
-    'ghcr.io/navikt/mock-oauth2-server:2.1.10',
-  )
-    .withEnvironment({
-      JSON_CONFIG: JSON.stringify({ interactiveLogin: true }),
-    })
-    .withExposedPorts(8080)
-    .withWaitStrategy(
-      Wait.forHttp('/default/.well-known/openid-configuration', 8080),
+test.beforeAll(
+  async () => {
+    container = await new GenericContainer(
+      'ghcr.io/navikt/mock-oauth2-server:2.1.10',
     )
-    .start();
+      .withEnvironment({
+        JSON_CONFIG: JSON.stringify({ interactiveLogin: true }),
+      })
+      .withExposedPorts(8080)
+      .withWaitStrategy(
+        Wait.forHttp('/default/.well-known/openid-configuration', 8080),
+      )
+      .start();
 
-  const issuerUrl = `http://${container.getHost()}:${container.getMappedPort(8080)}/default`;
-  const playgroundDir = path.resolve(import.meta.dirname, '../../playground');
+    const issuerUrl = `http://${container.getHost()}:${container.getMappedPort(8080)}/default`;
+    const playgroundDir = path.resolve(import.meta.dirname, '../../playground');
 
-  // Shared env for both build and serve steps.
-  const commonEnv = {
-    ...process.env,
-    AUTH_SECRET: 'test-secret-for-e2e-testing-only-32ch',
-    OAUTH_ISSUER_URL: issuerUrl,
-    OAUTH_CLIENT_ID: 'test-client',
-    OAUTH_CLIENT_SECRET: 'test-secret',
-    // Use a separate output directory so this build does not clash with the
-    // credentials-test dev server which owns the default .next directory.
-    NEXT_DIST_DIR: '.next-oauth',
-    NEXT_TELEMETRY_DISABLED: '1',
-  };
+    // Shared env for both build and serve steps.
+    const commonEnv = {
+      ...process.env,
+      AUTH_SECRET: 'test-secret-for-e2e-testing-only-32ch',
+      OAUTH_ISSUER_URL: issuerUrl,
+      OAUTH_CLIENT_ID: 'test-client',
+      OAUTH_CLIENT_SECRET: 'test-secret',
+      // Use a separate output directory so this build does not clash with the
+      // credentials-test dev server which owns the default .next directory.
+      NEXT_DIST_DIR: '.next-oauth',
+      NEXT_TELEMETRY_DISABLED: '1',
+    };
 
-  // Build the app ahead of time so `next start` boots in ~2 s instead of 90 s.
-  await new Promise<void>((resolve, reject) => {
-    const build = spawn('npm', ['run', 'build'], {
+    // Build the app ahead of time so `next start` boots in ~2 s instead of 90 s.
+    await new Promise<void>((resolve, reject) => {
+      const build = spawn('npm', ['run', 'build'], {
+        cwd: playgroundDir,
+        env: commonEnv,
+        stdio: 'pipe',
+      });
+      build.on('close', (code) =>
+        code === 0
+          ? resolve()
+          : reject(new Error(`next build exited with code ${code}`)),
+      );
+      build.on('error', reject);
+    });
+
+    devServer = spawn('npm', ['run', 'preview'], {
       cwd: playgroundDir,
-      env: commonEnv,
+      env: { ...commonEnv, PORT: String(OAUTH_PORT) },
       stdio: 'pipe',
     });
-    build.on('close', (code) =>
-      code === 0
-        ? resolve()
-        : reject(new Error(`next build exited with code ${code}`)),
-    );
-    build.on('error', reject);
-  });
 
-  devServer = spawn('npm', ['run', 'preview'], {
-    cwd: playgroundDir,
-    env: { ...commonEnv, PORT: String(OAUTH_PORT) },
-    stdio: 'pipe',
-  });
-
-  await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(
-      () => reject(new Error('Server startup timeout')),
-      30_000,
-    );
-    const check = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/`);
-        if (res.ok || res.status < 500) {
-          clearTimeout(timeout);
-          resolve();
-          return;
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('Server startup timeout')),
+        30_000,
+      );
+      const check = async () => {
+        try {
+          const res = await fetch(`${BASE_URL}/`);
+          if (res.ok || res.status < 500) {
+            clearTimeout(timeout);
+            resolve();
+            return;
+          }
+        } catch {
+          // Server not ready yet.
         }
-      } catch {}
-      setTimeout(check, 1000);
-    };
-    devServer.on('error', reject);
-    setTimeout(check, 2000);
-  });
-}, { timeout: 240_000 });
+        setTimeout(check, 1000);
+      };
+      devServer.on('error', reject);
+      setTimeout(check, 2000);
+    });
+  },
+  { timeout: 240_000 },
+);
 
 test.afterAll(async () => {
   devServer.kill('SIGTERM');
