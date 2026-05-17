@@ -3,7 +3,7 @@ import { GenericContainer, Wait } from 'testcontainers';
 import { spawn, type ChildProcess } from 'child_process';
 import path from 'path';
 
-const OAUTH_PORT = 3001;
+const OAUTH_PORT = 3851;
 const BASE_URL = `http://localhost:${OAUTH_PORT}`;
 const AUTH_SIGNIN_URL = '/api/auth/signin';
 
@@ -45,6 +45,7 @@ test.beforeAll(
     const commonEnv = {
       ...process.env,
       AUTH_SECRET: 'test-secret-for-e2e-testing-only-32ch',
+      AUTH_URL: `http://localhost:${OAUTH_PORT}`,
       OAUTH_ISSUER_URL: issuerUrl,
       OAUTH_CLIENT_ID: 'test-client',
       OAUTH_CLIENT_SECRET: 'test-secret',
@@ -72,6 +73,7 @@ test.beforeAll(
     devServer = spawn('npm', ['run', 'preview'], {
       cwd: playgroundDir,
       env: { ...commonEnv, PORT: String(OAUTH_PORT) },
+      detached: true,
       stdio: 'pipe',
     });
 
@@ -101,7 +103,7 @@ test.beforeAll(
 );
 
 test.afterAll(async () => {
-  devServer.kill('SIGTERM');
+  if (devServer.pid != null) process.kill(-devServer.pid, 'SIGTERM');
   await container.stop();
 });
 
