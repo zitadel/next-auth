@@ -4,7 +4,7 @@ export default {
   entryPoints: ['src/index.ts', 'src/adapter.ts', 'src/react.tsx'],
   out: 'docs',
   tsconfig: './tsconfig.json',
-  readme: 'none',
+  readme: 'README.md',
   excludeInternal: true,
   excludePrivate: true,
   highlightLanguages: [
@@ -12,6 +12,7 @@ export default {
     'javascript',
     'json',
     'jsx',
+    'tsx',
     'bash',
     'sh',
     'html',
