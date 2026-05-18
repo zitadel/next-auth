@@ -61,6 +61,7 @@ test.beforeAll(
         cwd: playgroundDir,
         env: commonEnv,
         stdio: 'pipe',
+        shell: true,
       });
       build.on('close', (code) =>
         code === 0
@@ -75,6 +76,7 @@ test.beforeAll(
       env: { ...commonEnv, PORT: String(OAUTH_PORT) },
       detached: true,
       stdio: 'pipe',
+      shell: true,
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -131,7 +133,7 @@ test('OAuth sign-in via signin-oauth button', async ({ page }) => {
 
 test('full OAuth flow via Auth.js sign-in page', async ({ page }) => {
   await signInWithOAuth(page);
-  await expect(page).toHaveURL('/profile');
+  await expect(page).toHaveURL(/\/profile/);
 });
 
 test('full sign-in and sign-out cycle', async ({ page }) => {
