@@ -17,9 +17,16 @@ export type {
 
 /**
  * Auth.js configuration for Next.js App Router applications.
+ *
+ * @public
  */
 export type NextAuthConfig = Omit<AuthConfig, 'raw'>;
 
+/**
+ * Next.js request type — a Fetch `Request` augmented with `nextUrl`.
+ *
+ * @public
+ */
 export type NextRequest = Request & {
   nextUrl: URL;
 };
@@ -50,6 +57,8 @@ type NextResponse = Response;
  * import { handlers } from '@/lib/auth';
  * export const { GET, POST } = handlers;
  * ```
+ *
+ * @public
  */
 export function NextAuth(config: NextAuthConfig): {
   handlers: {
@@ -155,6 +164,8 @@ export function NextAuth(config: NextAuthConfig): {
  *
  * const session = await getSession(request, authOptions);
  * ```
+ *
+ * @public
  */
 export async function getSession(
   req: Request,

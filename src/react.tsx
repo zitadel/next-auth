@@ -11,6 +11,11 @@ import type { Session } from '@auth/core/types';
 
 export type { Session };
 
+/**
+ * Reactive session context value returned by `useSession`.
+ *
+ * @public
+ */
 export interface SessionContextValue {
   data: Session | null;
   status: 'loading' | 'authenticated' | 'unauthenticated';
@@ -19,6 +24,11 @@ export interface SessionContextValue {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
+/**
+ * Props for {@link SessionProvider}.
+ *
+ * @public
+ */
 export interface SessionProviderProps {
   children: ReactNode;
   session?: Session | null;
@@ -28,6 +38,8 @@ export interface SessionProviderProps {
 /**
  * Provides session context to your application.
  * Wrap your root layout with this component.
+ *
+ * @public
  */
 export function SessionProvider({
   children,
@@ -95,6 +107,8 @@ export function SessionProvider({
 /**
  * Returns the current session data and status.
  * Must be used inside a SessionProvider.
+ *
+ * @public
  */
 export function useSession(): SessionContextValue {
   const context = useContext(SessionContext);
@@ -106,6 +120,8 @@ export function useSession(): SessionContextValue {
 
 /**
  * Initiates the sign-in flow by redirecting to the provider's auth page.
+ *
+ * @public
  */
 export async function signIn(
   provider?: string,
@@ -125,6 +141,8 @@ export async function signIn(
 
 /**
  * Signs the user out and redirects to the sign-out page.
+ *
+ * @public
  */
 export async function signOut(
   options: { callbackUrl?: string } = {},
@@ -140,6 +158,8 @@ export async function signOut(
 
 /**
  * Fetches available authentication providers.
+ *
+ * @public
  */
 export async function getProviders(): Promise<Record<
   string,
@@ -161,6 +181,8 @@ export async function getProviders(): Promise<Record<
 
 /**
  * Fetches the CSRF token for form submissions.
+ *
+ * @public
  */
 export async function getCsrfToken(): Promise<string> {
   try {
@@ -172,6 +194,11 @@ export async function getCsrfToken(): Promise<string> {
   }
 }
 
+/**
+ * Provider information returned by {@link getProviders}.
+ *
+ * @public
+ */
 export type ClientSafeProvider = {
   id: string;
   name: string;
