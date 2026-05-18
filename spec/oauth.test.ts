@@ -39,7 +39,7 @@ test.beforeAll(
       .start();
 
     const issuerUrl = `http://${container.getHost()}:${container.getMappedPort(8080)}/default`;
-    const playgroundDir = path.resolve(import.meta.dirname, '../../playground');
+    const playgroundDir = path.resolve(import.meta.dirname, '../playground');
 
     // Shared env for both build and serve steps.
     const commonEnv = {
