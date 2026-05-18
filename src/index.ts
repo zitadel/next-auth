@@ -34,14 +34,34 @@ export type NextRequest = Request & {
 type NextResponse = Response;
 
 /**
+ * Either a static {@link NextAuthConfig} object or a request-scoped factory
+ * `(req) => NextAuthConfig`.
+ *
+ * The factory form defers config evaluation until request time, which keeps
+ * server-only imports out of any code path the bundler can reach from a
+ * client entry point. Useful when reading config from request-scoped env
+ * (Cloudflare Workers, Deno Deploy) rather than from `process.env`.
+ *
+ * @public
+ */
+export type NextAuthConfigOrFactory =
+  | NextAuthConfig
+  | ((req: NextRequest) => NextAuthConfig);
+
+/**
  * Creates an Auth.js handler for Next.js App Router.
  *
- * @param config - Auth.js configuration
+ * Accepts either a {@link NextAuthConfig} object or a request-scoped
+ * factory `(req) => NextAuthConfig`. The factory form defers config
+ * evaluation to request time, which keeps server-only imports off any
+ * client-reachable graph.
+ *
+ * @param rawConfig - Auth.js configuration object or factory function
  * @returns Object containing handlers, getSession, signIn, and signOut
  *
  * @example
  * ```ts
- * // src/lib/auth.ts
+ * // src/lib/auth.ts — object form
  * import { NextAuth } from '@zitadel/next-auth';
  * import Zitadel from '@auth/core/providers/zitadel';
  *
@@ -53,6 +73,19 @@ type NextResponse = Response;
  *
  * @example
  * ```ts
+ * // src/lib/auth.ts — factory form (request-scoped env)
+ * import { NextAuth } from '@zitadel/next-auth';
+ *
+ * export const { handlers, getSession } = NextAuth((req) => ({
+ *   providers: [Zitadel({
+ *     clientId: req.headers.get('x-zitadel-client-id') ?? '',
+ *   })],
+ *   secret: process.env.AUTH_SECRET,
+ * }));
+ * ```
+ *
+ * @example
+ * ```ts
  * // src/app/api/auth/[...nextauth]/route.ts
  * import { handlers } from '@/lib/auth';
  * export const { GET, POST } = handlers;
@@ -60,7 +93,7 @@ type NextResponse = Response;
  *
  * @public
  */
-export function NextAuth(config: NextAuthConfig): {
+export function NextAuth(rawConfig: NextAuthConfigOrFactory): {
   handlers: {
     GET: (req: NextRequest) => Promise<NextResponse>;
     POST: (req: NextRequest) => Promise<NextResponse>;
@@ -78,14 +111,20 @@ export function NextAuth(config: NextAuthConfig): {
   ) => Promise<NextResponse>;
   signOut: (options?: { redirectTo?: string }) => Promise<NextResponse>;
 } {
-  config.basePath ??= '/api/auth';
-  setEnvDefaults(process.env, config);
+  function resolveConfig(req: NextRequest): NextAuthConfig {
+    const c = typeof rawConfig === 'function' ? rawConfig(req) : rawConfig;
+    c.basePath ??= '/api/auth';
+    setEnvDefaults(process.env, c);
+    return c;
+  }
 
   async function handler(req: NextRequest): Promise<NextResponse> {
+    const config = resolveConfig(req);
     return Auth(req as unknown as Request, config);
   }
 
   async function getSession(req: Request): Promise<Session | null> {
+    const config = resolveConfig(req as NextRequest);
     const headers = new Headers(req.headers);
     const url = createActionURL(
       'session',
@@ -107,11 +146,20 @@ export function NextAuth(config: NextAuthConfig): {
     throw new Error((data as { message?: string }).message ?? 'Session error');
   }
 
+  // signIn / signOut don't have a request in scope (called from server
+  // actions, not from a request handler). For the factory form we use
+  // the default basePath; users who need a per-request basePath should
+  // call Auth.js directly via handlers.GET/POST instead.
+  function defaultBasePath(): string {
+    if (typeof rawConfig === 'function') return '/api/auth';
+    return (rawConfig.basePath ?? '/api/auth').replace(/\/$/, '');
+  }
+
   async function signIn(
     provider?: string,
     options: { redirectTo?: string } = {},
   ): Promise<NextResponse> {
-    const basePath = (config.basePath ?? '/api/auth').replace(/\/$/, '');
+    const basePath = defaultBasePath();
     const params = new URLSearchParams();
     if (options.redirectTo) {
       params.set('callbackUrl', options.redirectTo);
@@ -126,7 +174,7 @@ export function NextAuth(config: NextAuthConfig): {
   async function signOut(
     options: { redirectTo?: string } = {},
   ): Promise<NextResponse> {
-    const basePath = (config.basePath ?? '/api/auth').replace(/\/$/, '');
+    const basePath = defaultBasePath();
     const params = new URLSearchParams();
     if (options.redirectTo) {
       params.set('callbackUrl', options.redirectTo);
