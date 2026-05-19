@@ -13,7 +13,7 @@ export default async function ProfilePage() {
   )) as Session | null;
 
   if (!session) {
-    redirect('/api/auth/signin');
+    redirect('/auth/login');
   }
 
   return (
