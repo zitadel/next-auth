@@ -108,8 +108,8 @@ export function NextAuth(rawConfig: NextAuthConfigOrFactory): {
   signIn: (
     provider?: string,
     options?: { redirectTo?: string },
-  ) => Promise<NextResponse>;
-  signOut: (options?: { redirectTo?: string }) => Promise<NextResponse>;
+  ) => Promise<Response>;
+  signOut: (options?: { redirectTo?: string }) => Promise<Response>;
 } {
   function resolveConfig(req: NextRequest): NextAuthConfig {
     const c = typeof rawConfig === 'function' ? rawConfig(req) : rawConfig;
@@ -158,12 +158,10 @@ export function NextAuth(rawConfig: NextAuthConfigOrFactory): {
   async function signIn(
     provider?: string,
     options: { redirectTo?: string } = {},
-  ): Promise<NextResponse> {
+  ): Promise<Response> {
     const basePath = defaultBasePath();
     const params = new URLSearchParams();
-    if (options.redirectTo) {
-      params.set('callbackUrl', options.redirectTo);
-    }
+    if (options.redirectTo) params.set('callbackUrl', options.redirectTo);
     const paramStr = params.toString();
     const url = provider
       ? `${basePath}/signin/${provider}${paramStr ? `?${paramStr}` : ''}`
@@ -173,12 +171,10 @@ export function NextAuth(rawConfig: NextAuthConfigOrFactory): {
 
   async function signOut(
     options: { redirectTo?: string } = {},
-  ): Promise<NextResponse> {
+  ): Promise<Response> {
     const basePath = defaultBasePath();
     const params = new URLSearchParams();
-    if (options.redirectTo) {
-      params.set('callbackUrl', options.redirectTo);
-    }
+    if (options.redirectTo) params.set('callbackUrl', options.redirectTo);
     const paramStr = params.toString();
     const url = `${basePath}/signout${paramStr ? `?${paramStr}` : ''}`;
     return Response.redirect(url, 302);
