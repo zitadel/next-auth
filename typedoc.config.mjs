@@ -2,7 +2,7 @@
 /** @type {import('typedoc').TypeDocOptions} */
 export default {
   entryPoints: ['src/index.ts', 'src/adapter.ts', 'src/react.tsx'],
-  out: 'docs',
+  out: '.out/docs',
   tsconfig: './tsconfig.json',
   readme: 'README.md',
   excludeInternal: true,
