@@ -95,7 +95,7 @@ beforeAll(async () => {
   // `npm run dev` below would fail to find `next` and the readiness poll
   // would hang for the full 120 s timeout.
   if (!existsSync(path.join(playgroundDir, 'node_modules'))) {
-    execSync('npm ci --no-progress --no-audit --no-fund', {
+    execSync('npm install --no-progress --no-audit --no-fund', {
       cwd: playgroundDir,
       stdio: 'inherit',
     });
