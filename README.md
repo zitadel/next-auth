@@ -1,29 +1,28 @@
-# Next.js Auth.js
+# Next.js Auth
 
-A [Next.js](https://nextjs.org/) App Router integration for
-[Auth.js](https://authjs.dev/) that provides seamless authentication with
+A [Next.js](https://nextjs.org/) App Router integration that provides seamless authentication with
 multiple providers, session management, and React client primitives.
 
-This integration brings the power and flexibility of Auth.js to Next.js App
+This integration brings the power and flexibility of OAuth to Next.js App
 Router applications with full TypeScript support, native Fetch API handling,
 and React hooks and components for session state management.
 
 ### Why?
 
 Modern web applications require robust, secure, and flexible authentication
-systems. While Auth.js provides excellent authentication capabilities,
-integrating it with Next.js App Router requires careful consideration of
-framework patterns, server-side rendering, and TypeScript integration.
+systems. Integrating OAuth and session management with Next.js App Router requires
+careful consideration of framework patterns, server-side rendering, and
+TypeScript integration.
 
 However, a direct integration isn't always straightforward. Different types
 of applications or deployment scenarios might warrant different approaches:
 
-- **App Router Compatibility:** Auth.js operates at the HTTP level, while
+- **App Router Compatibility:** OAuth and auth flows operate at the HTTP level, while
   Next.js App Router uses route handlers, server components, and React Server
   Components boundaries. A proper integration should bridge this gap by
   providing App Router-native primitives.
 - **HTTP Request Handling:** Next.js route handlers expect GET and POST
-  exports that accept native `Request` objects. This integration wires Auth.js
+  exports that accept native `Request` objects. This integration wires OAuth
   directly to these handlers with no adapter overhead.
 - **Session and React Lifecycle:** Proper session handling requires both
   server-side utilities for components and layouts and client-side React
@@ -34,7 +33,7 @@ of applications or deployment scenarios might warrant different approaches:
   utilities suitable for middleware and server components.
 
 This integration, `@zitadel/next-auth`, aims to provide the flexibility to
-handle such scenarios. It allows you to leverage the full Auth.js ecosystem
+handle such scenarios. It allows you to leverage the full OAuth provider ecosystem
 while maintaining Next.js best practices, ultimately leading to a more
 effective and less burdensome authentication implementation.
 
@@ -51,7 +50,7 @@ npm install @zitadel/next-auth @auth/core
 To use this integration, call `NextAuth()` in a shared server module and
 export the resulting handlers from your App Router catch-all route.
 
-You'll need to configure it with your Auth.js providers and options. The
+You'll need to configure it with your OAuth providers and options. The
 returned `handlers`, `auth`, `signIn`, and `signOut` utilities are then
 available throughout your application.
 
@@ -90,7 +89,7 @@ authentication:
 
 **Server Utilities:**
 
-- `auth(request)`: Retrieves the current Auth.js session server-side
+- `auth(request)`: Retrieves the current OAuth session server-side
 - `signIn(provider?, options?)`: Server action for programmatic sign-in
 - `signOut(options?)`: Server action for programmatic sign-out
 
@@ -168,7 +167,7 @@ export function UserMenu() {
 
 ##### Example: Advanced Configuration with Multiple Providers
 
-This example shows how to use the integration with multiple Auth.js
+This example shows how to use the integration with multiple OAuth
 providers and custom session configuration:
 
 ```ts
@@ -221,7 +220,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 - **Callback URLs:** OAuth providers must be configured with the correct
   callback URL: `[origin]/api/auth/callback/[provider]`.
 - **Type Augmentation:** If you attach additional properties (e.g., roles) to
-  the Auth.js user object, extend your app's types accordingly so consumers of
+  the user session object, extend your app's types accordingly so consumers of
   `session.user` remain type-safe.
 - **Redirect Semantics:** OAuth providers expect real browser navigations during
   sign-in. The client helpers handle this for you — avoid manual `fetch()` calls
@@ -229,11 +228,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 ## Useful links
 
-- **[Auth.js](https://authjs.dev/):** The authentication library that this
-  integration is built upon.
 - **[Next.js](https://nextjs.org/):** The framework this integration targets.
-- **[Auth.js Providers](https://authjs.dev/getting-started/providers):**
-  Complete list of supported authentication providers.
 
 ## Contributing
 

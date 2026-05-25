@@ -77,9 +77,10 @@ export const dynamic = 'force-static';
 // src/app/profile/page.tsx — opt this route back into dynamic rendering
 export const dynamic = 'force-dynamic';
 
-import { auth } from '@/auth';
+import { getSession } from '@/auth';
+import { headers } from 'next/headers';
 export default async function Profile() {
-  const session = await auth();
+  const session = await getSession(new Request('http://localhost', { headers: await headers() }));
   return <pre>{JSON.stringify(session, null, 2)}</pre>;
 }
 ```
