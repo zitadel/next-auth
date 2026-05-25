@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-group: Auth.js Provider
+group: OAuth Provider
 children:
   - ./next-auth-handler.md
   - ./session-data.md
@@ -9,9 +9,9 @@ children:
   - ./server-side/rest-api.md
 ---
 
-# Auth.js Quick Start
+# OAuth Quick Start
 
-This guide walks through setting up `@zitadel/next-auth` with the Auth.js
+This guide walks through setting up `@zitadel/next-auth` with the OAuth
 provider, suitable for OAuth, magic links, and credentials sign-in.
 
 ## Installation
@@ -54,7 +54,7 @@ with `GET` and `POST` that bind to Next's route handler convention:
 export { GET, POST } from '~/lib/auth';
 ```
 
-That's it — the SDK auto-mounts all the Auth.js endpoints under
+That's it — the SDK auto-mounts all the auth endpoints under
 `/api/auth/*`.
 
 ## Set the secret

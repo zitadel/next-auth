@@ -8,7 +8,7 @@ children:
 # Introduction
 
 `@zitadel/next-auth` is an open source library that provides authentication for
-Next.js 16 applications. It wraps [Auth.js](https://authjs.dev/) (`@auth/core`)
+Next.js 16 applications. It wraps auth (`@auth/core`)
 to bring OAuth, credentials, and magic-link authentication to Next.js with a
 native developer experience.
 

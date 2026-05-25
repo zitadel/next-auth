@@ -1,11 +1,11 @@
 ---
 title: Custom Pages
-group: Auth.js Provider
+group: OAuth Provider
 ---
 
 # Custom auth pages
 
-Auth.js ships default sign-in and error pages. To use your own pages,
+OAuth ships default sign-in and error pages. To use your own pages,
 point `pages.signIn` and `pages.error` at your custom routes, then build
 those routes in App Router:
 
@@ -47,7 +47,7 @@ export default function LoginPage() {
 
 ## Custom error page
 
-Renders Auth.js error codes (`?error=Configuration`, etc.):
+Renders auth error codes (`?error=Configuration`, etc.):
 
 ```tsx
 // src/app/auth/error/page.tsx
