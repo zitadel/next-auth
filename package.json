@@ -1,6 +1,6 @@
 {
   "name": "@zitadel/next-auth",
-  "description": "A comprehensive authentication integration for Next.js App Router with TypeScript support and session management",
+  "description": "A comprehensive authentication integration for Next.js applications with TypeScript support and session management",
   "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
