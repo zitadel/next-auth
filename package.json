@@ -100,5 +100,8 @@
   "bugs": "https://github.com/zitadel/next-auth/issues",
   "publishConfig": {
     "access": "public"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   }
 }
