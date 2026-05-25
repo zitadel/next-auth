@@ -1,3 +1,31 @@
+/**
+ * Auth.js integration for Next.js App Router.
+ *
+ * Provides authentication via Auth.js with support for OAuth providers,
+ * credentials, JWT sessions, and Next.js App Router conventions.
+ *
+ * @packageDocumentation
+ *
+ * @example Basic usage
+ * ```ts
+ * // src/auth.ts
+ * import { NextAuth } from '@zitadel/next-auth';
+ * import Zitadel from '@auth/core/providers/zitadel';
+ *
+ * export const { handlers, getSession, signIn, signOut } = NextAuth({
+ *   providers: [Zitadel({ clientId: process.env.ZITADEL_CLIENT_ID! })],
+ * });
+ * ```
+ *
+ * @example Mounting the route handler
+ * ```ts
+ * // src/app/api/auth/[...nextauth]/route.ts
+ * export { GET, POST } from '@/auth';
+ * ```
+ *
+ * @public
+ */
+
 import {
   Auth,
   type AuthConfig,
