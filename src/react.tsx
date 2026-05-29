@@ -119,7 +119,45 @@ export function useSession(): SessionContextValue {
 }
 
 /**
- * Initiates the sign-in flow by redirecting to the provider's auth page.
+ * Submits a CSRF-protected POST form to an Auth.js action endpoint.
+ *
+ * Auth.js v5 only accepts POST requests carrying a CSRF token at its action
+ * endpoints; a plain GET navigation is rejected as an `UnknownAction` and
+ * redirects to the Configuration error page. We fetch the current CSRF token
+ * and submit a hidden form so the browser performs a real POST navigation.
+ *
+ * @param action - The Auth.js endpoint to post to
+ * @param fields - Extra hidden fields to include alongside the CSRF token
+ */
+async function postToAuth(
+  action: string,
+  fields: Record<string, string>,
+): Promise<void> {
+  const csrfToken = await getCsrfToken();
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = action;
+
+  for (const [name, value] of Object.entries({ csrfToken, ...fields })) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
+/**
+ * Initiates the sign-in flow by submitting a CSRF-protected POST to the
+ * provider's auth endpoint.
+ *
+ * @param provider - The provider ID to sign in with. When omitted, the request
+ *   targets the provider chooser page.
+ * @param options - Sign-in options
  *
  * @public
  */
@@ -128,32 +166,32 @@ export async function signIn(
   options: { callbackUrl?: string } = {},
 ): Promise<void> {
   const basePath = '/api/auth';
-  const params = new URLSearchParams();
+  const action = provider
+    ? `${basePath}/signin/${provider}`
+    : `${basePath}/signin`;
+  const fields: Record<string, string> = {};
   if (options.callbackUrl) {
-    params.set('callbackUrl', options.callbackUrl);
+    fields.callbackUrl = options.callbackUrl;
   }
-  const paramStr = params.toString();
-  const url = provider
-    ? `${basePath}/signin/${provider}${paramStr ? `?${paramStr}` : ''}`
-    : `${basePath}/signin${paramStr ? `?${paramStr}` : ''}`;
-  window.location.href = url;
+  await postToAuth(action, fields);
 }
 
 /**
- * Signs the user out and redirects to the sign-out page.
+ * Signs the user out by submitting a CSRF-protected POST to the sign-out
+ * endpoint.
+ *
+ * @param options - Sign-out options
  *
  * @public
  */
 export async function signOut(
   options: { callbackUrl?: string } = {},
 ): Promise<void> {
-  const basePath = '/api/auth';
-  const params = new URLSearchParams();
+  const fields: Record<string, string> = {};
   if (options.callbackUrl) {
-    params.set('callbackUrl', options.callbackUrl);
+    fields.callbackUrl = options.callbackUrl;
   }
-  const paramStr = params.toString();
-  window.location.href = `${basePath}/signout${paramStr ? `?${paramStr}` : ''}`;
+  await postToAuth('/api/auth/signout', fields);
 }
 
 /**

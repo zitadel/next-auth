@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { SignInButtons } from '@/components/SignInButtons';
 import Image from 'next/image';
 import { headers } from 'next/headers';
 import { getSession } from '@/lib/auth';
@@ -112,22 +113,7 @@ export default async function Home() {
                       />
                     </div>
                   </div>
-                  <div className="mb-6 flex flex-col gap-3">
-                    <a
-                      href="/api/auth/signin"
-                      data-testid="signin-credentials"
-                      className="flex w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition duration-200 hover:bg-blue-700"
-                    >
-                      Sign in with Credentials
-                    </a>
-                    <a
-                      href="/api/auth/signin"
-                      data-testid="signin-oauth"
-                      className="flex w-full cursor-pointer items-center justify-center rounded-lg border border-blue-600 px-4 py-3 font-semibold text-blue-600 transition duration-200 hover:bg-blue-50"
-                    >
-                      Sign in with OAuth
-                    </a>
-                  </div>
+                  <SignInButtons />
                   <div className="text-center">
                     <p className="mb-4 text-sm text-gray-500">
                       What happens when you click the button:
